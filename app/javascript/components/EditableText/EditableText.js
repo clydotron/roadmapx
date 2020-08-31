@@ -11,16 +11,18 @@ const EditableText = (props) => {
 
   const updateTextValue = () => {
     setEditMode(false)
-    setText(inputRef.current.value)
-    //callback for new value?
-    console.log(text)
+    const newText = inputRef.current.value
+    setText(newText)
+    console.log(`props:${props}`)
+    //props.onXYZ(newText)
   }
+
   const renderEditView = () => {
     return (
       <div>
         <input type="text" defaultValue={text} ref={inputRef}/>
         <button onClick={changeEditMode}>X</button>
-        <button onClick={updateTextValue}>OK</button>
+        <button onClick={updateTextValue.bind(this)}>OK</button>
       </div>
     )
   }
