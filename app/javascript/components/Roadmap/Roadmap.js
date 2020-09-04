@@ -1,6 +1,7 @@
 import React, {useEffect,useState,Fragment} from 'react'
 import axios from 'axios'
 import styled from 'styled-components'
+import {SketchPicker} from 'react-color'
 
 const Button = styled.button`
 background-color: ${props => props.bkcolor}
@@ -10,9 +11,9 @@ const Roadmap = (props) => {
   const [lanes,setLanes] = useState([])
   const [hasData,setHasData] = useState(false)
   const [title,setTitle] = useState("undefined")
+  const [showColorPicker,setShowColorPicker] = useState(false)
 
   useEffect(() => {
-    console.log("Roadmap#useEffect")
     updateRoadmap()
   },[])
 
@@ -20,7 +21,6 @@ const Roadmap = (props) => {
 
     axios.get("/api/v1/roadmaps/1") //use the roadmap id
     .then( resp => { 
-      console.log(`updateRoadmap - received data`)
       const payload = resp.data.data  
       setTitle(payload.attributes.title)
     
@@ -32,19 +32,13 @@ const Roadmap = (props) => {
           lanes.push(data)
         }
       })
-      console.log(lanes)
 
       setLanes(lanes)
       setHasData(true)
     })
     .catch( resp => { console.log(resp)})
   }
-  /*
-  { this.state.displayColorPicker ? <div style={ styles.popover }>
-          <div style={ styles.cover } onClick={ this.handleClose }/>
 
-  <SketchPicker color={ this.state.color } onChange={ this.handleChange } />
-  </div> : null }
 
   const handleAddLane = async (e) => {
     let res = await axios.post("/api/v1/lanes", {title:"newLaneX", color:"blue", roadmap_id:1 })
@@ -68,6 +62,7 @@ const Roadmap = (props) => {
   const handleUpdateColor = (lane_id) => {
     console.log("update color")
     //show modal color selector
+    setShowColorPicker(true)
   }
 
   const laneList = lanes.map( lane => {
@@ -76,7 +71,21 @@ const Roadmap = (props) => {
     <Button onClick={() => handleUpdateColor(lane.id)} bkcolor={lane.color}>C</Button>
     </div>
   })
+  /*
+  { this.state.displayColorPicker ? <div style={ styles.popover }>
+          <div style={ styles.cover } onClick={ this.handleClose }/>
 
+  <SketchPicker color={ this.state.color } onChange={ this.handleChange } />
+  </div> : null }
+*/
+  const handleColorClose = () => {
+    setShowColorPicker(false)
+  }
+
+  const handleColorChange = (color) => {
+    console.log(color)
+
+  }
   return (
     <Fragment>
       {
@@ -92,6 +101,13 @@ const Roadmap = (props) => {
           </div>
         </div>
       }
+        { showColorPicker ?  
+          <div className="popover">
+            <div className="cover" onClick={ handleColorClose }/>
+            <SketchPicker  onChange={ handleColorChange } />
+          </div> : null 
+        }
+      
     </Fragment>
   )
 }

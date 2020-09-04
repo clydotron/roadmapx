@@ -10,9 +10,9 @@ workspace = Workspace.create({title: "Candidate Homework X"})
 
 roadmap = Roadmap.create({title:"RoadmapX", description:"test", workspace:workspace})
 
-lanes = Lane.create([{title:"lane1", description:"words",color:"#456799",collapsed:false, roadmap:roadmap},
-                      {title:"lane2", description:"words",color:"#ff6799",collapsed:false, roadmap:roadmap},
-                      {title:"lane3", description:"words",color:"#45ff99",collapsed:true, roadmap:roadmap},
+lanes = Lane.create([{title:"lane1", description:"words",color:"#456799",collapsed:false, roadmap:roadmap,sort_key:1},
+                     {title:"lane2", description:"words",color:"#ff6799",collapsed:false, roadmap:roadmap, sort_key:2},
+                     {title:"lane3", description:"words",color:"#45ff99",collapsed:true, roadmap:roadmap, sort_key:3}
 ])
 
 tasks = Task.create([{title:"Task 1",color:"#ff0000",lane:lanes.first},

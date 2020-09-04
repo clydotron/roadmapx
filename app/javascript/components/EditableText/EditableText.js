@@ -13,8 +13,8 @@ const EditableText = (props) => {
     setEditMode(false)
     const newText = inputRef.current.value
     setText(newText)
-    console.log(`props:${props}`)
-    //props.onXYZ(newText)
+    console.log(`props:${props} text${newText}`)
+    props.handleTextUpdate(newText)
   }
 
   const renderEditView = () => {

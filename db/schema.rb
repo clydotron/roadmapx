@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_29_202800) do
+ActiveRecord::Schema.define(version: 2020_09_01_171000) do
 
   create_table "lanes", force: :cascade do |t|
     t.string "title"
@@ -20,6 +20,7 @@ ActiveRecord::Schema.define(version: 2020_08_29_202800) do
     t.integer "roadmap_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "sort_key"
     t.index ["roadmap_id"], name: "index_lanes_on_roadmap_id"
   end
 
@@ -38,6 +39,7 @@ ActiveRecord::Schema.define(version: 2020_08_29_202800) do
     t.integer "lane_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "sort_key"
     t.index ["lane_id"], name: "index_tasks_on_lane_id"
   end
 

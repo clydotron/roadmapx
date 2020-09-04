@@ -12,14 +12,14 @@ function ViewSelector({view,allViews,onViewSelected}) {
       const value = allViews[view];
       return <li className={getViewClass(view)}
               key={value}
-              onClick={() => onViewSelected(view)}>{view}</li>;
+              onClick={() => onViewSelected(view)}>{value}</li>;
     });
   }
 
   return (
     <div className="ViewSelector">
       <div className="ViewSelector-view-title">
-        <h1 data-testid="title">{view}</h1>
+        <h1 data-testid="title">{allViews[view]}</h1>
       </div>
       <div className="ViewSelector-view-options">
         <ul data-testid="view-options">

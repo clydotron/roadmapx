@@ -1,5 +1,5 @@
 class LaneSerializer
   include FastJsonapi::ObjectSerializer
-  attributes :title, :color, :collapsed
+  attributes :title, :color, :collapsed, :sort_key
   has_many :tasks
 end

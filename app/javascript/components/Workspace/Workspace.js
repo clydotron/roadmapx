@@ -4,29 +4,27 @@ import PlanningBoard from './../PlanningBoard/PlanningBoard'
 import ParkingLot from './../ParkingLot/ParkingLot'
 import axios from 'axios'
 
-//import ViewSelector from '../ViewSelector/ViewSelector.js'
+import ViewSelector from '../ViewSelector/ViewSelector.js'
 //<ViewSelector view={view} allViews={allViews} onViewSelected={view => setView(view)}/>
+
 const Workspace = (props) => {
 
   const allViews = {
-    'Roadmap' : 'roadmap',
-    'Planning board' : 'planning_board',
-    'Parking lot' : 'parking_lot'
+    'roadmap' : 'Roadmap',
+    'planning_board' : 'Planning board',
+    'parking_lot' : 'Parking lot'
 };
 
   // import the different views
   const [view,setView] = useState('roadmap');
   const [hasData,setHasData] = useState(false)
+
   useEffect(() => {
-  
-    axios.get("/api/v1/roadmaps/1")
-    .then( resp => { 
-      setHasData(true)
-      console.log(resp)
-    })
+    const roadmap_id = props.workspace.roadmap
+
+    axios.get(`/api/v1/roadmaps/${roadmap_id}`)
+    .then( resp => { setHasData(true) })
     .catch( resp => { console.log(resp)})
-    
-    console.log(props)
     },[])
 
   function renderCurrentView() {
@@ -48,7 +46,7 @@ const Workspace = (props) => {
       hasData &&
       <div>
         <div className="Workspace-viewSelector">
-          ViewSelector
+          <ViewSelector view={view} allViews={allViews} onViewSelected={view => setView(view)}/>
         </div>
         <div className="Workspace-view">
           {renderCurrentView()}

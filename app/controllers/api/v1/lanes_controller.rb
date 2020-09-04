@@ -49,7 +49,7 @@ module Api
       end
 
       def lane_params
-        params.require(:lane).permit(:title, :color, :roadmap_id)
+        params.require(:lane).permit(:title, :color, :roadmap_id, :collapsed, :sort_key)
       end
 
       def options

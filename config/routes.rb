@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       resources :lanes
       resources :tasks
       resources :roadmaps
+      resources :workspaces
     end
   end
 
