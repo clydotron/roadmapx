@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import {SketchPicker} from 'react-color'
 
 const Button = styled.button`
-background-color: ${props => props.bkcolor}
+  background-color: ${props => props.bkcolor}
 `
 const Roadmap = (props) => {
 

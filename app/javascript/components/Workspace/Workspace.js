@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Roadmap from './../Roadmap/Roadmap'
+import RoadmapContainer from './../Roadmap/RoadmapContainer'
+//import Roadmap from './../Roadmap/Roadmap'
 import PlanningBoard from './../PlanningBoard/PlanningBoard'
 import ParkingLot from './../ParkingLot/ParkingLot'
 import axios from 'axios'
-
 import ViewSelector from '../ViewSelector/ViewSelector.js'
-//<ViewSelector view={view} allViews={allViews} onViewSelected={view => setView(view)}/>
 
 const Workspace = (props) => {
 
@@ -30,7 +29,8 @@ const Workspace = (props) => {
   function renderCurrentView() {
     switch(view) {
       case 'roadmap':
-        return <Roadmap />;
+        return <RoadmapContainer />;
+        //return <Roadmap />;
 
       case 'planning_board':
         return <PlanningBoard />;

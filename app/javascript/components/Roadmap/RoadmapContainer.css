@@ -1,22 +1,8 @@
-.popover {
-  position: absolute;
-  z-index: 2;
-
-}
-
-.cover {
-  position: fixed;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  left: 0px;
-}
-
-.RoadMapContainer {
+.container {
   display: flex;
   justify-content: space-between;
   margin: 10px;
-  height: 100%;
+  height: 600px;
 }
 
 .work-area {
@@ -25,7 +11,7 @@
   border: 1px solid grey;
 }
 
-.tools-area {
+.tool-area {
     width: 186px;
       border: 1px solid grey;
 }
