@@ -49,7 +49,7 @@ const Tool = (props) => {
   },[])
 
   const dropId = `tool-area-${props.tool.type}`;
- 
+  const toolId = `tools_${props.tool.type}`
   return (
     <Droppable droppableId={dropId} type={props.tool.type} >
       {(provided) => (
@@ -63,6 +63,7 @@ const Tool = (props) => {
                 {...provided.draggableProps}
                 {...provided.dragHandleProps}
                 ref={provided.innerRef}
+                id={toolId}
               >
                 <ImageBox>
                   <div className="bg_svg">

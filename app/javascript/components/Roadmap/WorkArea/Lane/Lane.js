@@ -6,7 +6,7 @@ const Lane = (props) => {
 
   //lane rows
   useEffect(() => {
-    console.log(props)
+    //console.log(props)
   })
 
   return (
