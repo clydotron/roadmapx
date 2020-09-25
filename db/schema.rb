@@ -10,17 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_01_171000) do
+ActiveRecord::Schema.define(version: 2020_09_24_175225) do
 
   create_table "lanes", force: :cascade do |t|
     t.string "title"
     t.string "description"
     t.boolean "collapsed"
     t.string "color"
+    t.integer "sort_key"
     t.integer "roadmap_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.integer "sort_key"
     t.index ["roadmap_id"], name: "index_lanes_on_roadmap_id"
   end
 
@@ -33,14 +33,21 @@ ActiveRecord::Schema.define(version: 2020_09_01_171000) do
     t.index ["workspace_id"], name: "index_roadmaps_on_workspace_id"
   end
 
-  create_table "tasks", force: :cascade do |t|
-    t.string "title"
-    t.string "color"
+  create_table "task_rows", force: :cascade do |t|
     t.integer "lane_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.index ["lane_id"], name: "index_task_rows_on_lane_id"
+  end
+
+  create_table "tasks", force: :cascade do |t|
+    t.string "title"
+    t.string "color"
     t.integer "sort_key"
-    t.index ["lane_id"], name: "index_tasks_on_lane_id"
+    t.integer "task_row_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["task_row_id"], name: "index_tasks_on_task_row_id"
   end
 
   create_table "workspaces", force: :cascade do |t|
@@ -51,5 +58,6 @@ ActiveRecord::Schema.define(version: 2020_09_01_171000) do
 
   add_foreign_key "lanes", "roadmaps"
   add_foreign_key "roadmaps", "workspaces"
-  add_foreign_key "tasks", "lanes"
+  add_foreign_key "task_rows", "lanes"
+  add_foreign_key "tasks", "task_rows"
 end

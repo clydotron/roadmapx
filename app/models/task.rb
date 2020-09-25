@@ -1,3 +1,3 @@
 class Task < ApplicationRecord
-  belongs_to :lane
+  belongs_to :task_row
 end

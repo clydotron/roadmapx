@@ -15,7 +15,12 @@ lanes = Lane.create([{title:"lane1", description:"words",color:"#456799",collaps
                      {title:"lane3", description:"words",color:"#45ff99",collapsed:true, roadmap:roadmap, sort_key:3}
 ])
 
-tasks = Task.create([{title:"Task 1",color:"#ff0000",lane:lanes.first},
-                    {title:"Task 2",color:"#00ff00",lane:lanes.first},
-                    {title:"Task 3",color:"#0000ff",lane:lanes.last}
+rows = TaskRow.create([{lane:lanes.first},
+                      {lane:lanes.first},
+                      {lane:lanes.last}
+])
+
+tasks = Task.create([{title:"Task 1",color:"#ff0000",task_row:rows.first},
+                    {title:"Task 2",color:"#00ff00",task_row:rows.first},
+                    {title:"Task 3",color:"#0000ff",task_row:rows.last}
 ])
