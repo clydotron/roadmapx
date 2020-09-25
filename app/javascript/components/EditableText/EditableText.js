@@ -29,7 +29,7 @@ const EditableText = (props) => {
 
   const renderDefaultView = () => {
     return (
-      <div className="titlebar-title" onDoubleClick={changeEditMode} data-testid="title">
+      <div className={props.class_name} onDoubleClick={changeEditMode} data-testid="title">
         {text}
       </div>
     )

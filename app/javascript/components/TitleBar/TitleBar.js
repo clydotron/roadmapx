@@ -19,7 +19,7 @@ const TitleBar = (props) =>{
         <div className="logo" />
         logo
       </div>
-      <EditableText text={props.title} handleTextUpdate={handleTextUpdate}/>
+      <EditableText class_name={"titlebar-title"} text={props.title} handleTextUpdate={handleTextUpdate}/>
       <SearchBox requestSearch={console.log} data-testid="search" />
     </div>
   );
