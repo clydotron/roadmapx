@@ -25,6 +25,14 @@
   margin-top: 18px;
 }
 
+.title {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14pt;
+  margin-left: 4px;
+}
+
 .titlebar-title {
   grid-column: 2 / span 1;
   justify-self: start;

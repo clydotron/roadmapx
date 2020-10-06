@@ -17,7 +17,7 @@ const TitleBar = (props) =>{
     <div className="titlebar">
       <div className="titlebar-logo" data-testid="logo">
         <div className="logo" />
-        logo
+        <div className="title">ProductPlan</div>
       </div>
       <EditableText class_name={"titlebar-title"} text={props.title} handleTextUpdate={handleTextUpdate}/>
       <SearchBox requestSearch={console.log} data-testid="search" />
