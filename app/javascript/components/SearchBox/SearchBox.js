@@ -1,4 +1,6 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import './SearchBox.css'
 
 
@@ -23,10 +25,12 @@ export const SearchBox = ({requestSearch}) => {
       />
       <button className="search-button" onClick={searchClick} data-testid="search-button">
         <div className="search-button-icon">
-          <i className="fas fa-search icon"/>
+          <FontAwesomeIcon icon={faSearch} />
         </div>
       </button>
     </div>
   )
 };
-
+/*
+<i className="fas fa-search icon"/>
+*/
