@@ -5,8 +5,20 @@ import WorkArea from './WorkArea/WorkArea'
 import ToolArea from './ToolArea/ToolArea'
 import Onboarding from './Onboarding/Onboarding'
 import onboardingContent from './Onboarding/onboarding-content'
+import DropHereTarget from './Onboarding/DropHereTarget'
 import _ from "lodash"
 import axios from 'axios'
+
+//
+// Onboarding state machine:
+// when the app starts and has loaded data, check to see if 
+//  1. onboarding has already been shown
+//  2. if not, are there any lanes?
+// if not, show the
+
+// onboarding states:
+// active: on/off
+// status: firstLane, firsTask, moreTasks
 
 const RoadmapContainer = (props) => {
 
@@ -16,10 +28,18 @@ const RoadmapContainer = (props) => {
   const [nextLaneId,setNextLaneId] = useState(5) //move to roadmap
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingData, setOnboardingData] = useState({})
+  const [persistentOrder, setPersistentOrder] = useState(false)
+  const [showDropHere,setShowDropHere] = useState(false)
+  const [onboardingState,setOnboardingState] = useState("showAddLane")
+
+  //4 dates: ShowAddLane, ShowAddTask, ShowAddSecondTask, complete.
+  // >>> make persistent
+  // >>> make lane counter persistent (so i always get increasing lanes)
 
   // data structures:
   // do we want to have a roadmap object that contains everything, or lanes and ordereds lanes?
-
+  // pros-cons: having a simple list (only lane ids) for the ordered is simple and easy to manipulate 
+  // (dont have to worry about deep copies)
   useEffect(() => {
 
     setTools([{id:"add_lane", title:"Add Lane", type:"lane"},{id:"add_task", title:"Add Task", type:"task"}])
@@ -28,17 +48,46 @@ const RoadmapContainer = (props) => {
   },[])
 
   useLayoutEffect(() => {
-    console.log("layoutEffect: ",roadmap)
+    //console.log("layoutEffect: ",roadmap, "hasData: ",hasData)
+
+    // we could just check if 
+    // if (typeof roadmap === 'undefined') {
+    //   console.log("no roadmap data yet")
+    //   return
+    // }
+
+    // check to see if the 
+    if (typeof roadmap.lanes === 'undefined') {
+      console.log("no roadmap lane data yet")
+      return
+    }
+
     if (!hasData) {
       return
     }
 
-    //console.log("numLanes: ",roadmap.lanes.length)
-    if (roadmap.lanes.length === 0) {
+    // BDG - 
+    const numLanes = Object.keys(roadmap.lanes).length
+    //console.log("ULE - numLanes: ",Object.keys(roadmap.lanes).length)
+
+    if (numLanes === 0 && onboardingState === "showAddLane") {
       //if first time, show onboarding
-      ///console.log("show onboarding:")
+      if (!showOnboarding) {
+        //setShowOnboarding(true)
+        setTimeout(() => { 
+          showOnboardingDialog(onboardingContent.addLane)
+          setOnboardingState("showAddTask")
+        },1000)
+      }
+      console.log("show onboarding:")
     }
-  },[roadmap])
+    if (numLanes === 1 && onboardingState === "showAddTask") {
+      console.log("Show AddTask");
+      showOnboardingDialog(onboardingContent.addTask)
+      //setOnboardingState("showAddSecondTask")
+    }
+
+  },[roadmap,hasData,onboardingState])
 
   const showOnboardingDialog = (content) => {
     setOnboardingData(content)
@@ -51,19 +100,24 @@ const RoadmapContainer = (props) => {
       const resp = await axios.get("/api/v1/roadmaps/1") //use the roadmap id
       
       const payload = resp.data.data  
-      //setTitle(payload.attributes.title)
-      //console.log("roadmap: ",resp.data)
 
       const newLanes = []
       const newOrderedLanes = []
 
+      // cycle thru the 'included' data structure to get all of the lanes associated with the roadmap
+      // they will be sorted (using sort_key) when retrieved from the DB.
+      // note: I am maintaing 2 sets of data: 'lanes' contains all of the lane data (title, id, color)
+      // and is stored as properites within the lanes object >>> currently NOT an array <<<
+      // a second array (orderedLanes) is used to store the just the id of the lane in the order they 
+      // appear on screen. In the event of a reordering of the lanes (either by adding a new lane or reordering 
+      // existing,)
+      // >>> if not maintaining persistency, the orderedLanes can be upated post dnd with new ordered layout
       resp.data.included.map( lane => {   
         if( lane.type === "lane" ) {
           const data = lane.attributes
           data.id = lane.id
           const laneIndex = `lane-${lane.id}`
-          //console.log(laneIndex)
-          newLanes[laneIndex] = data
+          newLanes[laneIndex] = data 
           newOrderedLanes.push(lane.id)
         }
       })
@@ -72,6 +126,11 @@ const RoadmapContainer = (props) => {
         orderedLanes: newOrderedLanes
       }
       setRoadmap(newRoadmap) 
+
+      // if this is the first time:
+      // check to see if there are any lanes:
+      // if not, show the onboarding ()
+
       setHasData(true)
     }
     catch(err) {
@@ -80,6 +139,7 @@ const RoadmapContainer = (props) => {
   }
   
   const getNextLaneName = () => {
+    // @todo make the nextLaneId persistent
     const ttitle = `Lane ${nextLaneId}`
     setNextLaneId(nextLaneId + 1)
     return ttitle;
@@ -89,10 +149,11 @@ const RoadmapContainer = (props) => {
   const getNextLaneColor = () => {
     //allow for color scheme:
     //have 4 colors, cycle thru them
-    const colors =[ "orange","red","purple","tomato"]
+    const colors =[ "#00d084","#0693e3","purple","tomato"]
     return colors[nextLaneId % colors.length]
   }
 
+  // blocking call to create a new lane 
   const createLane = async (sortKey) => {
  
     const newLane = {
@@ -102,10 +163,13 @@ const RoadmapContainer = (props) => {
       collapsed:"false",
       sort_key: sortKey
     }   
-
+ 
     try {
       const resp = await axios.post('/api/v1/lanes',newLane)
-      console.log("success: ", resp);
+      console.log("success: new lane created", resp);
+      // we can trigger an update here - 
+
+      updateRoadmap();
     }
     catch(err) {
       console.log("failure: ", err)
@@ -130,7 +194,7 @@ const updateLaneSortOrder = async (sortedLanes) => {
   const reqs = []
 
   sortedLanes.map((lane, index) => {
-    console.log(lane)
+    //console.log(lane)
     if (typeof lane === 'undefined' || typeof lane.id === 'undefined') {
       console.log("undefined")
     }
@@ -171,32 +235,27 @@ const updateLaneSortOrderNB = (sortedLanes) => {
   console.log(reqs)
 
   // one works, but n doesnt...
-  const req = reqs[0]
-  const data = {
-       "sort_key": req.sort_key
-     }
-  //   console.log(data)
-  axios.patch(req.url,data)
-  .then((resp) => {
-    console.log(resp)
-  },(err) => {
-    console.log(err)
-  })
+  // const req = reqs[0]
+  // const data = {
+  //      "sort_key": req.sort_key
+  //    }
+  // //   console.log(data)
+  // axios.patch(req.url,data)
+  // .then((resp) => {
+  //   console.log(resp)
+  // },(err) => {
+  //   console.log(err)
+  // })
 
-  return
+  
 
-  const patchReqs = reqs.map(req => {
-    const data = {
-      "sort_key": req.sort_key
-    }
-    return axios.patch(req.url,data)
-  })
-
+  const patchReqs = reqs.map(req => axios.patch(req.url,{"sort_key": req.sort_key}))
   console.log(patchReqs)
 
-  Promise.all(patchReqs)
+  Promise.all([patchReqs[0],patchReqs[1]])
   .then( (resp) => {
     console.log("success: ",resp)
+    updateRoadmap()
   })
   .catch(err => {
     console.log("error: ",err)
@@ -224,23 +283,37 @@ const updateLaneSortOrderNB = (sortedLanes) => {
 //     console.log(res);
 //   }));
 
-const orderedLanesX = (lanes,laneOrder) => {
-  const ordered = []
-  laneOrder.map(laneId => {
-    if (laneId !== -1) {
-      const id = `lane-${laneId}`
-      ordered.push(lanes[id])
+  const orderedLanesX = (lanes,laneOrder) => {
+    const ordered = []
+    laneOrder.map(laneId => {
+      if (laneId !== -1) {
+        const id = `lane-${laneId}`
+        ordered.push(lanes[id])
+      }
+      else {
+        ordered.push(undefined)
+      }
+    })
+    return ordered
+  }
+
+  // use the drag start callback to determine if we need to show the drop here target
+  // (shown if there are zero lanes, and the onboarding state is 'add_lane')
+  const onDragStart = (result) => {
+    console.log("Dragging: ",result)
+
+    const {source,destination } = result;
+    
+    // if the user is dragging a new lane, show the "drop here"
+    if ( source.droppableId === 'tool-area-lane') {
+      setShowDropHere(true)
     }
-    else {
-      ordered.push(undefined)
-    }
-  })
-  return ordered
-}
+  }
 
   const onDragEnd = (result) => {
     //console.log(result)
-    
+    setShowDropHere(false)
+
     const { destination, source, draggableId, type } = result;
     if (!destination) {
       return;
@@ -249,8 +322,8 @@ const orderedLanesX = (lanes,laneOrder) => {
       return;
     }
 
-    //do stuff here:
-    // if the dropped item is a lane:
+
+    // User dropped a new lane onto the work area:
     //  create a new lane item, 
     //  add it to the list of lanes
     //  add it to the ordered list of lanes
@@ -258,9 +331,12 @@ const orderedLanesX = (lanes,laneOrder) => {
     // create new lane, with the roadmap id, and the 'sort' index
     // update the rest of the lanes' sortKey
     // reload the roadmap
+    // @todo: problem: the 
     if (type === 'lane' && source.droppableId === 'tool-area-lane') {
  
       const newLane = createLane(destination.index);
+
+      return
 
       // update the ordered lane list, but put a placeholder value for
       // the new one (since we wont know its ID until we get it from the DB)
@@ -275,34 +351,36 @@ const orderedLanesX = (lanes,laneOrder) => {
       return
     }
 
-
+    // ......
     // if this is a lane, this is a reorder event:
     // currently just update the order locally - not persistent
+
     if (type === 'lane') {
 
-      //console.log(roadmap.orderedLanes)
-      var newLaneOrder = Array.from(roadmap.orderedLanes);
-      newLaneOrder.splice(destination.index, 0, newLaneOrder.splice(source.index,1)[0]);
-      //console.log("after: ",newOrderedLanes) 
+      // @todo move to own function?
+      //reorderLanes(?)
+      var newOrderedLanes = Array.from(roadmap.orderedLanes);
+      newOrderedLanes.splice(destination.index, 0, newOrderedLanes.splice(source.index,1)[0]);
 
-      const orderedLanes = orderedLanesX(roadmap.lanes, newLaneOrder)
-      updateLaneSortOrderNB(orderedLanes)
+      if (persistentOrder) {
 
-      updateRoadmap()
+        // persistent solution:
+        // update the 'sort_key' value for all lanes in the db
+        // reload the roadmapd from the db
+        const orderedLanes = orderedLanesX(roadmap.lanes, newOrderedLanes)
+        updateLaneSortOrderNB(orderedLanes)
 
+        updateRoadmap()
+      }
+      else {
 
-      // const newRoadmap = {
-      //   ...roadmap,
-      //   orderedLanes: newOrderedLanes
-      // }
-      // setRoadmap(newRoadmap)
-
-      // console.log(newRoadmap)
-
-      // persistent solution:
-      // update the 'sort_key' value for all lanes in the db
-      // reload the roadmapd from ther db
-      //updateLaneSortOrder(newLaneOrder)
+        // non persistent - (no DB)
+        const newRoadmap = {
+          ...roadmap,
+          orderedLanes: newOrderedLanes
+        }
+        setRoadmap(newRoadmap)
+      }
       return;
     }
 
@@ -377,6 +455,18 @@ const orderedLanesX = (lanes,laneOrder) => {
     )
   }
 
+  const renderDropHereTarget = () => {
+    if(!showDropHere) {
+      return null;
+    }
+
+    return (
+      <div className="drop-here-target">
+        <h3>Drop Here</h3>
+      </div>
+    )
+  }
+
   const orderedLanes = () => {
     var xlanes = []
     if (hasData) {
@@ -389,23 +479,26 @@ const orderedLanesX = (lanes,laneOrder) => {
     return xlanes
   }
 
-  
+  //todo: DropHereTarget should probably be rendered as the placeholder for dnd?
+  // should only be visible when the something is being dragged over,
+  // 
   return (
     <Fragment>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="container">
+      <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
+        <div className="roadmap-container">
           <div className="work-area">
+            <DropHereTarget active={showDropHere} />
             <WorkArea 
               lanes={orderedLanes()} 
               onUpdateLane={handleUpdateLane}
               onDeleteLane={handleDeleteLane}
+           
               />
           </div>
           <div className="tool-area">
             <ToolArea tools={tools}/>
           </div>
         </div>
-
       </DragDropContext>
       {renderOnboarding()}            
     </Fragment>

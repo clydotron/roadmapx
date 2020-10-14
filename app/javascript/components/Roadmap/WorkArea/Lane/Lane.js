@@ -4,20 +4,26 @@ import { Draggable } from 'react-beautiful-dnd';
 import TaskRow from './TaskRow/TaskRow';
 import EditableText from './../../../EditableText/EditableText'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
-import { faAngleUp } from '@fortawesome/free-solid-svg-icons'
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { faCaretUp } from '@fortawesome/free-solid-svg-icons'
 import { faCog } from '@fortawesome/free-solid-svg-icons'
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons'
 import { TwitterPicker} from 'react-color'
 import './Lane.css';
 
-const Container = styled.div`
+const LaneContainer = styled.div`
+  margin-top: 8px;
   margin-bottom: 8px;
+  width: 100%;
+`
+
+const Container = styled.div`
+  
   padding: 0px;
   border: 1px solid lightgrey;
   background-color: white;
   border-radius: 2 px;
-  width: 100%;
+  
   display: flex;
   flex-direction: column;
   min-height: 80px;
@@ -39,20 +45,26 @@ const TopBar = styled.div`
 
 // align-items: center;
 const OpenCloseWidget = styled.div`
-  background-color:tomato;
-  padding: 8px 6px;
+  padding-left: 8px;
+  padding-top: 8px;
   cursor: pointer;
 `
+//padding: 8px 6px 0px 0px;
 
-const SettingsWidget = styled.div`
+// used for the setting (color-picker) and delete icons
+const LaneWidgetRight = styled.div`
   float:right;
   width:20px;
+  padding-top: 8px;
+  padding-right: 6px;
+  cursor: pointer; 
 `
 
 const Title = styled.h3`
-  padding: 8px 16px;
+  padding-top: 8px;
+  padding-left: 8px;
   border: 0px;
-  margin: 0px 0px 8px 0px;
+  margin: 0px 0px 2px 0px;
   text-align: left;
   flex-grow:1;
 `;
@@ -127,7 +139,7 @@ const Lane = (props) => {
   }
 
   const getActionIcon = () => {
-    return collapsed ? faAngleUp : faAngleDown
+    return collapsed ? faCaretUp : faCaretDown
   }
 
   const toggleCollapased = () => {
@@ -141,6 +153,7 @@ const Lane = (props) => {
     props.onUpdate(data)
   }
 
+  // @todo make the icon color configurable (via props?)
   return(
     <Draggable 
       draggableId={props.data.id} 
@@ -149,7 +162,7 @@ const Lane = (props) => {
       type="lane"
       >
       {(provided,snapshot) => (
-       <div
+       <LaneContainer
        {...provided.draggableProps}
             ref={provided.innerRef}
        >
@@ -162,18 +175,17 @@ const Lane = (props) => {
             <OpenCloseWidget>
               <FontAwesomeIcon icon={getActionIcon()} onClick={() => {toggleCollapased()}}/>  
             </OpenCloseWidget>
+            <EditableText class_name={"lane-title"} text={props.data.title} handleTextUpdate={handleTextUpdate}/>
 
-            <Title>{props.data.title}
-
-            </Title>
             {
               mouseOver &&
               <div>
-   
-              <SettingsWidget>
-              <FontAwesomeIcon icon={faCog} color="lime" onClick={() => {settingsClicked()}}/>  
-              </SettingsWidget>
-              <FontAwesomeIcon icon={faWindowClose} color="lime" onClick={() => {deleteClicked()}}/>  
+                <LaneWidgetRight> 
+                  <FontAwesomeIcon icon={faWindowClose} color="black" onClick={() => {deleteClicked()}}/> 
+                </LaneWidgetRight> 
+                <LaneWidgetRight>
+                  <FontAwesomeIcon icon={faCog} color="black" onClick={() => {settingsClicked()}}/>  
+                </LaneWidgetRight>
               </div>
             }
           </TopBar>
@@ -189,15 +201,18 @@ const Lane = (props) => {
         {
           !collapsed &&
           <Container>
-            <EditableText class_name={"h3 lane-title"} text={props.data.title} handleTextUpdate={handleTextUpdate}/>
+           
           </Container>
         }
-        </div>
+        </LaneContainer>
       )}
     </Draggable>
   )
   
 };
+
+{/* <Title>{props.data.title}
+</Title> */}
 
 export default Lane;
 {/* <div>
