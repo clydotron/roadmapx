@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import RoadmapContainer from './../Roadmap/RoadmapContainer'
-//import Roadmap from './../Roadmap/Roadmap'
 import PlanningBoard from './../PlanningBoard/PlanningBoard'
 import ParkingLot from './../ParkingLot/ParkingLot'
 import axios from 'axios'
@@ -27,10 +26,12 @@ const Workspace = (props) => {
     },[])
 
   function renderCurrentView() {
+
+    console.log(view)
+    
     switch(view) {
       case 'roadmap':
         return <RoadmapContainer />;
-        //return <Roadmap />;
 
       case 'planning_board':
         return <PlanningBoard />;
@@ -38,6 +39,7 @@ const Workspace = (props) => {
       case 'parking_lot':
         return <ParkingLot />;
     }
+    return null
   }
 
   return (

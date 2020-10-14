@@ -61,9 +61,9 @@ function App() {
     <div className="App">
       {
         loaded &&
-        <div>
-        <TitleBar title={title} handleNewTitle={handleNewTitle.bind(this)}/>
-        <Workspace workspace={workspace}/>
+        <div className="Container">
+          <TitleBar title={title} handleNewTitle={handleNewTitle.bind(this)}/>
+          <Workspace workspace={workspace}/>
         </div>
       }
     </div>

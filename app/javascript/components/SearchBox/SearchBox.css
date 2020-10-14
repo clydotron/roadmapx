@@ -25,9 +25,11 @@
 
 .search-button-icon {
   font-size: 1.50rem;
-  color:inherit;
+  background-color: white;
 }
-
+/*
+color:inherit;
 .icon {
   color: #898c91;
 }
+*/

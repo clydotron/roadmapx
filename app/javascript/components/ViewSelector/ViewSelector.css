@@ -6,7 +6,6 @@
   padding: 0;
   box-sizing: border-box;
   height: 80px;
-  background-color: burlywood;
   position: relative;
 }
 
@@ -52,12 +51,14 @@
   margin-bottom: 0.22rem;
   color: black;
   list-style-type: none;
-  background-color: bisque
 }
 
+/* 
+border-bottom: 1px solid #fff;
+*/
 .ViewSelector-view-options li {
   cursor: pointer;
-  border-bottom: 1px solid #fff;
+
   padding: 0.33rem 1.58rem 0.55rem 1.58rem;
   font-family: "Gilroy-Medium";
   line-height: 1.13;

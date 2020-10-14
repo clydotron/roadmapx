@@ -2,6 +2,8 @@ import React from 'react';
 import './Onboarding.css';
 import PropTypes from 'prop-types';
 import styled from 'styled-components'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTimes } from '@fortawesome/free-solid-svg-icons'
 
 const Container = styled.div`
 position: absolute;
@@ -20,7 +22,10 @@ class Onboarding extends React.Component {
       <div className="contentArea">
 
         <div className="topzone" >
-          <button className="x_button" onClick={this.props.onClose}>x</button>
+          <div className="x_button">
+        <FontAwesomeIcon icon={faTimes} color="#5E6266" onClick={this.props.onClose} />  
+        </div>
+        
         </div>
         <div className="drop_target">
           <div className="dropped_item">

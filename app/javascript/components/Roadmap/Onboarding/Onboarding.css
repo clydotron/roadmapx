@@ -84,16 +84,16 @@
 
 #onboarding .topzone {
   height: 16px;
-  background-color: beige;
   width: 100%;
+  margin-bottom: 8px;
 }
 
 #onboarding .x_button {
   float: right;
   width: 16px;
   height: 16px;
-  margin-right: -8px;
-  background-color: aquamarine;
+  margin-right: -20px;
+  
 }
 
 #onboarding .okButton {
