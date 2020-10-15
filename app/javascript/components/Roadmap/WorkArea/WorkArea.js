@@ -4,7 +4,7 @@ import Lane from './Lane/Lane'
 import { Droppable } from 'react-beautiful-dnd'
 
 const Container = styled.div`
-  padding: 8px;
+  padding: 0px 8px;
   transition: background-color 0.2s ease;
   background-color: ${props => (props.isDraggingOver ? 'skyblue' : 'white' )};
   flex-grow: 1;

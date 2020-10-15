@@ -305,7 +305,8 @@ const updateLaneSortOrderNB = (sortedLanes) => {
     const {source,destination } = result;
     
     // if the user is dragging a new lane, show the "drop here"
-    if ( source.droppableId === 'tool-area-lane') {
+    const numLanes = Object.keys(roadmap.lanes).length
+    if ( source.droppableId === 'tool-area-lane' && numLanes === 0) {
       setShowDropHere(true)
     }
   }

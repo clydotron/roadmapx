@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import ViewSelector from '../ViewSelector/ViewSelector.js'
 import RoadmapContainer from './../Roadmap/RoadmapContainer'
 import PlanningBoard from './../PlanningBoard/PlanningBoard'
 import ParkingLot from './../ParkingLot/ParkingLot'
 import axios from 'axios'
-import ViewSelector from '../ViewSelector/ViewSelector.js'
+import "./Workspace.css"
 
 const Workspace = (props) => {
 
@@ -11,7 +12,7 @@ const Workspace = (props) => {
     'roadmap' : 'Roadmap',
     'planning_board' : 'Planning board',
     'parking_lot' : 'Parking lot'
-};
+  };
 
   // import the different views
   const [view,setView] = useState('roadmap');
@@ -20,15 +21,15 @@ const Workspace = (props) => {
   useEffect(() => {
     const roadmap_id = props.workspace.roadmap
 
-    axios.get(`/api/v1/roadmaps/${roadmap_id}`)
-    .then( resp => { setHasData(true) })
-    .catch( resp => { console.log(resp)})
-    },[])
+    setHasData(true)
+    // not really sure why i am doing this...
+   // axios.get(`/api/v1/roadmaps/${roadmap_id}`)
+   // .then( resp => { setHasData(true) })
+   // .catch( resp => { console.log(resp)})
+  },[])
 
   function renderCurrentView() {
 
-    console.log(view)
-    
     switch(view) {
       case 'roadmap':
         return <RoadmapContainer />;
@@ -42,21 +43,23 @@ const Workspace = (props) => {
     return null
   }
 
-  return (
-    <div className="Workspace">
-    {
-      hasData &&
-      <div>
-        <div className="Workspace-viewSelector">
+  const renderWorkspace = () => {
+    if (!hasData) {
+      return null;
+    }
+    return (
+      <div className="ws-container">
+        <div className="ws-viewSelector">
           <ViewSelector view={view} allViews={allViews} onViewSelected={view => setView(view)}/>
         </div>
-        <div className="Workspace-view">
-          {renderCurrentView()}
-        </div>  
-      </div>
-    }
+        <div className="ws-view">
+        {renderCurrentView()}
+      </div>  
     </div>
-  )
+    )
+  }
+
+  return renderWorkspace()
 }
 
 export default Workspace;

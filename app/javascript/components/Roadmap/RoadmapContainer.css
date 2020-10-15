@@ -2,39 +2,18 @@
   display: flex;
   justify-content: space-between;
   margin: 0px 10px;
-  height: 600px;
+  margin-bottom: 50px;
+  height: 100%;
+  border: 1px solid grey;
 }
 
 .work-area {
   width: 100%;
   height: 100%;
-  border: 1px solid grey;
-
+  
 }
-/*
- background-color: green;
-   background-color: #eeffcc;
-  */
 
 .tool-area {
   width: 186px;
-  border: 1px solid grey;
-}
-
-.drop-here-target {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px dashed gray;
-  height: 160px;
-
-  margin: 8px;
-  margin-right: 16px;
-  border-radius: 8px;
-  padding-right: 16px;
-}
-
-.drop-here-target h3 {
-  text-align: center;
-  display: inline-block;
-  vertical-align: middle;
+  border-left: 1px solid grey;
 }
