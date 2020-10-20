@@ -32,6 +32,17 @@ const RoadmapContainer = (props) => {
   const [showDropHere,setShowDropHere] = useState(false)
   const [onboardingState,setOnboardingState] = useState("showAddLane")
 
+
+  // BDG notes:
+  /*
+  const handleChange = (e) => {
+    e.preventDefaults() //look this up
+    
+    //example
+    //setReview(Object.assign({}, review, {[e.target.name]: e.target.value}))
+  }
+
+  */
   //4 dates: ShowAddLane, ShowAddTask, ShowAddSecondTask, complete.
   // >>> make persistent
   // >>> make lane counter persistent (so i always get increasing lanes)
@@ -114,11 +125,18 @@ const RoadmapContainer = (props) => {
       // >>> if not maintaining persistency, the orderedLanes can be upated post dnd with new ordered layout
       resp.data.included.map( lane => {   
         if( lane.type === "lane" ) {
+
           const data = lane.attributes
           data.id = lane.id
+          data.task_rows = lane.relationships.task_rows.data
+   
+          data.task_rows.tasks = []
           const laneIndex = `lane-${lane.id}`
           newLanes[laneIndex] = data 
           newOrderedLanes.push(lane.id)
+
+          console.log("task rows:", data.task_rows)
+       
         }
       })
       const newRoadmap = {
@@ -167,8 +185,8 @@ const RoadmapContainer = (props) => {
     try {
       const resp = await axios.post('/api/v1/lanes',newLane)
       console.log("success: new lane created", resp);
-      // we can trigger an update here - 
-
+      
+      // trigger an update here:
       updateRoadmap();
     }
     catch(err) {
@@ -337,6 +355,12 @@ const updateLaneSortOrderNB = (sortedLanes) => {
  
       const newLane = createLane(destination.index);
 
+      if (persistentOrder) {
+
+      }
+      else {
+
+      }
       return
 
       // update the ordered lane list, but put a placeholder value for
@@ -385,6 +409,11 @@ const updateLaneSortOrderNB = (sortedLanes) => {
       return;
     }
 
+    if (type === task) {
+
+    }
+
+
     // if the user just dropped their first lane, wait x seconds
     // and then show them the 'add bar' (task?) modal onboarding dialog
     //setOnboardingData(onboardingContent.addTask)
@@ -421,6 +450,11 @@ const updateLaneSortOrderNB = (sortedLanes) => {
 
   const handleDeleteLane = (laneId) => {
     console.log(`delete lane: ${laneId}`)
+
+const csrfToken = document.querySelector('[name=csrf-token]').content
+axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken
+console.log(csrfToken)
+
     axios.delete(`/api/v1/lanes/${laneId}`)
     .then(resp => {
       console.log("delete successful: ",resp)

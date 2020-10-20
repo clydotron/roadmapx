@@ -103,12 +103,16 @@ const Lane = (props) => {
 
   const updateLaneData = () => {
     setCollapsed(props.data.collapsed)
-    //console.log("index: ",props.index," id: ", props.data.id)
+
+    //determine how many taskRows we have...
+    //console.log(props)
+    //console.log("TaskRows:",props.data.task_rows)
+    setTaskRows(props.data.task_rows)
+    // @todo make sure this is the right format
   }
 
+  // user update events: (these can be simplified)
   const handleTextUpdate  = (newText) => {
-    //console.log(newText)
-
     const data = {
       ...props.data,
       title: newText
@@ -116,6 +120,15 @@ const Lane = (props) => {
     props.onUpdate(data)
   }
 
+  const handleNewColor = (color) => {
+    const data = {
+      ...props.data,
+      color: color
+    }
+    props.onUpdate(data)
+  }
+
+  // user action events:
   const settingsClicked = () => {
     // show the color picker
     setShowSettings(true)
@@ -126,16 +139,6 @@ const Lane = (props) => {
     //setShowConfirmDelete(true)
 
     props.onDelete(props.data.id)
-  }
-
-  const handleNewColor = (color) => {
-    //console.log(color)
-
-    const data = {
-      ...props.data,
-      color: color
-    }
-    props.onUpdate(data)
   }
 
   const getActionIcon = () => {
@@ -152,6 +155,40 @@ const Lane = (props) => {
     }
     props.onUpdate(data)
   }
+
+  const renderControls = () => {
+    if (!mouseOver) {
+      return null
+    }
+
+    return (
+      <div>
+        <LaneWidgetRight> 
+          <FontAwesomeIcon icon={faWindowClose} color="black" onClick={() => {deleteClicked()}}/> 
+        </LaneWidgetRight> 
+        <LaneWidgetRight>
+          <FontAwesomeIcon icon={faCog} color="black" onClick={() => {settingsClicked()}}/>  
+        </LaneWidgetRight>
+      </div>
+    )
+  }
+
+  const renderColorPicker = () => {
+    if (!showSettings) {
+      return null
+    }
+    return (
+      <SettingsPopover>
+        <SettingsCover onClick={() => setShowSettings(false)}>
+          <TwitterPicker color={props.data.color} onChange={(color) => handleNewColor(color.hex) }/>
+        </SettingsCover>
+      </SettingsPopover>
+    )
+  }
+
+  const taskRowsX = props.data.task_rows.map((row,index) => {
+    return <TaskRow key={row.id} id={row.id} data={row} index={index} />
+  })
 
   // @todo make the icon color configurable (via props?)
   return(
@@ -177,31 +214,14 @@ const Lane = (props) => {
             </OpenCloseWidget>
             <EditableText class_name={"lane-title"} text={props.data.title} handleTextUpdate={handleTextUpdate}/>
 
-            {
-              mouseOver &&
-              <div>
-                <LaneWidgetRight> 
-                  <FontAwesomeIcon icon={faWindowClose} color="black" onClick={() => {deleteClicked()}}/> 
-                </LaneWidgetRight> 
-                <LaneWidgetRight>
-                  <FontAwesomeIcon icon={faCog} color="black" onClick={() => {settingsClicked()}}/>  
-                </LaneWidgetRight>
-              </div>
-            }
+            {renderControls()}
           </TopBar>
           
-          {
-          showSettings &&
-          <SettingsPopover>
-            <SettingsCover onClick={() => setShowSettings(false)}>
-              <TwitterPicker color={props.data.color} onChange={(color) => handleNewColor(color.hex) }/>
-            </SettingsCover>
-          </SettingsPopover>
-        }
+          {renderColorPicker()}
         {
           !collapsed &&
           <Container>
-           
+            {taskRowsX}
           </Container>
         }
         </LaneContainer>
