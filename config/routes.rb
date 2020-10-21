@@ -8,7 +8,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :lanes
       resources :tasks
-      resources :task_rows
+      resources :rows
       resources :roadmaps
       resources :workspaces
     end

@@ -15,7 +15,7 @@ module Api
       end
 
       def create
-        task = Task.new(task_params)
+        task = row.tasks.new(task_params)
 
         if task.save
           render json: TaskSerializer.new(task).serialized_json
@@ -44,9 +44,11 @@ module Api
       end
 
       private
-
+      def row
+        @row = Row.find(params[:row_id])
+      end
       def task_params
-        params.require(:task).permit(:name,:color,:lane_id)
+        params.require(:task).permit( :name, :color, :row_id )
       end
 
     end

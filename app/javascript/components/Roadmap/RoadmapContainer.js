@@ -128,14 +128,14 @@ const RoadmapContainer = (props) => {
 
           const data = lane.attributes
           data.id = lane.id
-          data.task_rows = lane.relationships.task_rows.data
+          data.rows = lane.relationships.rows.data
    
-          data.task_rows.tasks = []
+          data.rows.tasks = []
           const laneIndex = `lane-${lane.id}`
           newLanes[laneIndex] = data 
           newOrderedLanes.push(lane.id)
 
-          console.log("task rows:", data.task_rows)
+          console.log("task rows:", data.rows)
        
         }
       })

@@ -106,8 +106,8 @@ const Lane = (props) => {
 
     //determine how many taskRows we have...
     //console.log(props)
-    //console.log("TaskRows:",props.data.task_rows)
-    setTaskRows(props.data.task_rows)
+    //console.log("TaskRows:",props.data.rows)
+    setTaskRows(props.data.rows)
     // @todo make sure this is the right format
   }
 
@@ -186,7 +186,7 @@ const Lane = (props) => {
     )
   }
 
-  const taskRowsX = props.data.task_rows.map((row,index) => {
+  const taskRowsX = props.data.rows.map((row,index) => {
     return <TaskRow key={row.id} id={row.id} data={row} index={index} />
   })
 

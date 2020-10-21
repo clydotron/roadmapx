@@ -5,12 +5,12 @@ module Api
        
       def index
         lanes = Lane.all
-        render json: LaneSerializer.new(lanes).serialized_json
+        render json: LaneSerializer.new(lanes,options).serialized_json
       end
 
       def show
         lane = Lane.find(params[:id])
-        render json: LaneSerializer.new(lane).serialized_json
+        render json: LaneSerializer.new(lane,options).serialized_json
       end
 
       def create
@@ -19,7 +19,7 @@ module Api
         if lane.save
           render json: LaneSerializer.new(lane).serialized_json
         else
-          render json: {error: review.errors.messages }, status: 422
+          render json: {error: lane.errors.messages }, status: 422
         end
       end
 
@@ -38,7 +38,7 @@ module Api
         if lane.destroy
           head :no_content
         else
-          render json: {error: review.errors.messages }, status: 422   
+          render json: {error: lane.errors.messages }, status: 422   
         end
       end
 
@@ -53,7 +53,7 @@ module Api
       end
 
       def options
-        @options ||= { include: %i[tasks]}
+        @options ||= { include: %i[rows]}
       end
 
     end

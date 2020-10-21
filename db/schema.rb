@@ -27,27 +27,29 @@ ActiveRecord::Schema.define(version: 2020_09_24_175225) do
   create_table "roadmaps", force: :cascade do |t|
     t.string "title"
     t.string "description"
+    t.string "onboarding_state"
+    t.integer "next_lane_id"
     t.integer "workspace_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["workspace_id"], name: "index_roadmaps_on_workspace_id"
   end
 
-  create_table "task_rows", force: :cascade do |t|
+  create_table "rows", force: :cascade do |t|
     t.integer "lane_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["lane_id"], name: "index_task_rows_on_lane_id"
+    t.index ["lane_id"], name: "index_rows_on_lane_id"
   end
 
   create_table "tasks", force: :cascade do |t|
     t.string "title"
     t.string "color"
     t.integer "sort_key"
-    t.integer "task_row_id", null: false
+    t.integer "row_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["task_row_id"], name: "index_tasks_on_task_row_id"
+    t.index ["row_id"], name: "index_tasks_on_row_id"
   end
 
   create_table "workspaces", force: :cascade do |t|
@@ -58,6 +60,6 @@ ActiveRecord::Schema.define(version: 2020_09_24_175225) do
 
   add_foreign_key "lanes", "roadmaps"
   add_foreign_key "roadmaps", "workspaces"
-  add_foreign_key "task_rows", "lanes"
-  add_foreign_key "tasks", "task_rows"
+  add_foreign_key "rows", "lanes"
+  add_foreign_key "tasks", "rows"
 end
