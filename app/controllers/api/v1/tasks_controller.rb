@@ -26,7 +26,7 @@ module Api
 
       def update
         task = Task.find(params[:id])
-        if task.update(airline_params)
+        if task.update(task_params)
           render json: TaskSerializer.new(task).serialized_json
         else
           render json: {error: task.errors.messages}, status: 422
@@ -48,7 +48,7 @@ module Api
         @row = Row.find(params[:row_id])
       end
       def task_params
-        params.require(:task).permit( :name, :color, :row_id )
+        params.require(:task).permit( :title, :color, :row_id, :sort_key )
       end
 
     end

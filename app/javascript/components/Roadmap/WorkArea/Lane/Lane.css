@@ -1,15 +1,15 @@
 
-.settings-popover {
-  position: 'absolute';
-  zIndex: '2';
+.colorpicker-popover {
+  position: absolute;
+  z-index: 2;
 }
 
-.settings-cover {
-  position: 'fixed';
+.colorpicker-cover {
+  position: fixed;
   top: 0px;
   right: 0px;
-  bottom: '0px';
-  left: '0px';
+  bottom: 0px;
+  left: 0px;
 }
 
 .lane-title {

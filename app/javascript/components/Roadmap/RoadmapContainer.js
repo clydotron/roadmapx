@@ -3,6 +3,7 @@ import { DragDropContext } from 'react-beautiful-dnd'
 import './RoadmapContainer.css'
 import WorkArea from './WorkArea/WorkArea'
 import ToolArea from './ToolArea/ToolArea'
+import Modal from '../Utils/Modal/Modal'
 import Onboarding from './Onboarding/Onboarding'
 import onboardingContent from './Onboarding/onboarding-content'
 import DropHereTarget from './Onboarding/DropHereTarget'
@@ -26,12 +27,13 @@ const RoadmapContainer = (props) => {
   const [hasData,setHasData] = useState(false)
   const [roadmap,setRoadmap] = useState({})
   const [nextLaneId,setNextLaneId] = useState(5) //move to roadmap
+  const [nextTaskId,setNextTaskId] = useState(10)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingData, setOnboardingData] = useState({})
-  const [persistentOrder, setPersistentOrder] = useState(false)
+  const [persistentOrder, setPersistentOrder] = useState(true)
   const [showDropHere,setShowDropHere] = useState(false)
   const [onboardingState,setOnboardingState] = useState("showAddLane")
-
+  const [showModal,setShowModal] = useState(false)
 
   // BDG notes:
   /*
@@ -105,15 +107,75 @@ const RoadmapContainer = (props) => {
     setShowOnboarding(true)
   }
 
+  const getRowAndTaskData = async () => {
+    const rows = []
+    const tasks = []
+
+    try {
+      const resp = await axios.get("/api/v1/rows") 
+ 
+      resp.data.data.map((row,index) => {
+        if (row.type === 'row') {
+          const rowIndex = `row-${row.id}`
+          rows[rowIndex] = row.relationships
+        }
+      })
+
+      resp.data.included.map((item,index) => {
+        if (item.type === 'task') {
+          const taskIndex = `task-${item.id}`
+          tasks[taskIndex] = item.attributes;
+        }
+      })
+    }
+    catch (err) {
+      console.log(err);
+    }
+
+    return { rows, tasks }
+  }
+
+
   const updateRoadmap = async () => {
 
     try {
       const resp = await axios.get("/api/v1/roadmaps/1") //use the roadmap id
       
       const payload = resp.data.data  
+      //console.log(resp)
 
       const newLanes = []
       const newOrderedLanes = []
+      const newRows = []
+      const newTasks = []
+  
+      // tried (unsuccesfully) to move this to its own function, got tripped up with the Promise/return values... revisit
+      try {
+        const resp = await axios.get("/api/v1/rows") 
+   
+        resp.data.data.map((row,index) => {
+          if (row.type === 'row') {
+            const rowIndex = `row-${row.id}`
+            newRows[rowIndex] = {
+              tasks: row.relationships.tasks,
+              id: row.id
+            }
+          }
+        })
+  
+        resp.data.included.map((item,index) => {
+          if (item.type === 'task') {
+            const taskIndex = `task-${item.id}`
+            newTasks[taskIndex] = item.attributes;
+          }
+        })
+      }
+      catch (err) {
+        console.log(err);
+      }
+
+      setNextLaneId(payload.attributes.next_lane_id)
+
 
       // cycle thru the 'included' data structure to get all of the lanes associated with the roadmap
       // they will be sorted (using sort_key) when retrieved from the DB.
@@ -126,23 +188,70 @@ const RoadmapContainer = (props) => {
       resp.data.included.map( lane => {   
         if( lane.type === "lane" ) {
 
+          //cycle thru the rows
           const data = lane.attributes
           data.id = lane.id
-          data.rows = lane.relationships.rows.data
-   
-          data.rows.tasks = []
+    
+          const xrows = lane.relationships.rows.data.map((row) => {
+
+            const rowIndex = `row-${row.id}`
+            const rowData = newRows[rowIndex]
+
+            const tasks = rowData.tasks.data.map(task => {
+              const taskIndex = `task-${task.id}`
+              const ttask = newTasks[taskIndex]
+
+              return {
+                ...ttask,
+                id: task.id,
+                lane_id: lane.id,
+                row_id: row.id
+              }
+            })
+            
+            // can swap this to be > 
+            if (tasks.length === 0) {
+              //console.log(`row ${row.id} has no tasks - skipping`)
+              //@todo fire off a delete for this row?
+              return null
+            }
+
+            const newRow = {
+              id: row.id,
+              lane_id: lane.id,
+              tasks: tasks
+            }
+            return newRow
+          })
+
+          data.rows = xrows.filter(row => { return row !== null})
+
+          // always add a placeholder last row - give it a special name and do not store it in the db
+          const lastRow = {
+            id: `placeholder-${lane.id}`,
+            lane_id: lane.id,
+            tasks: []
+          }
+          data.rows.push(lastRow)
+
           const laneIndex = `lane-${lane.id}`
           newLanes[laneIndex] = data 
           newOrderedLanes.push(lane.id)
 
-          console.log("task rows:", data.rows)
-       
+          //request all lanes and tasks?
         }
       })
+
+      // update the existing (in memory) roadmap
       const newRoadmap = {
         lanes: newLanes,
+        rows: newRows,
+        tasks: newTasks,
         orderedLanes: newOrderedLanes
       }
+
+      console.log(newRoadmap)
+
       setRoadmap(newRoadmap) 
 
       // if this is the first time:
@@ -155,170 +264,35 @@ const RoadmapContainer = (props) => {
       console.log(err)
     }
   }
-  
-  const getNextLaneName = () => {
-    // @todo make the nextLaneId persistent
-    const ttitle = `Lane ${nextLaneId}`
-    setNextLaneId(nextLaneId + 1)
-    return ttitle;
-  }
 
-  // return these together?
-  const getNextLaneColor = () => {
-    //allow for color scheme:
-    //have 4 colors, cycle thru them
-    const colors =[ "#00d084","#0693e3","purple","tomato"]
-    return colors[nextLaneId % colors.length]
-  }
+  const initTaskData = () => {
 
-  // blocking call to create a new lane 
-  const createLane = async (sortKey) => {
- 
-    const newLane = {
-      title: getNextLaneName(),
-      color: getNextLaneColor(),
-      roadmap_id: "1",
-      collapsed:"false",
-      sort_key: sortKey
-    }   
- 
-    try {
-      const resp = await axios.post('/api/v1/lanes',newLane)
-      console.log("success: new lane created", resp);
-      
-      // trigger an update here:
-      updateRoadmap();
-    }
-    catch(err) {
-      console.log("failure: ", err)
-    }
-
-    return newLane;
-  }
-
-  const createTask = () => {
-
-  }
-
-  const createTaskLane = () => {
-    //maybe?
-  }
-
-const updateLaneSortOrder = async (sortedLanes) => {
-
-  console.log("start updateLaneSortOrder")
-  console.log(sortedLanes)
-
-  const reqs = []
-
-  sortedLanes.map((lane, index) => {
-    //console.log(lane)
-    if (typeof lane === 'undefined' || typeof lane.id === 'undefined') {
-      console.log("undefined")
-    }
-    else {
-      reqs.push({url:`/api/v1/lanes/${lane.id}`,sort_key:index})
-    }
-  })
-
-  //blocking - for now
-  try {
-    const response = await axios.all(reqs.map(info => {
-      const data = {
-        "sort_key": info.sort_key
-      }
-      axios.patch(info.url,data)
-    }))
-    console.log("updated sort order:", response)
-    //request new roadmap
-  }
-  catch(err) {
-    console.log(err)
-  }
+    const title = `Task  ${nextTaskId}`
+    setNextTaskId(nextTaskId + 1)
     
-}
+    const taskColors =[ "#00d084","#0693e3","purple","tomato"]
+    const color = taskColors[nextTaskId % taskColors.length]
 
-const updateLaneSortOrderNB = (sortedLanes) => {
-  const reqs = []
-  sortedLanes.map((lane, index) => {
-    //console.log(lane)
-    if (typeof lane === 'undefined' || typeof lane.id === 'undefined') {
-      console.log("undefined")
-    }
-    else {
-      reqs.push({url:`/api/v1/lanes/${lane.id}`,sort_key:index})
-    }
-  })
-
-  console.log(reqs)
-
-  // one works, but n doesnt...
-  // const req = reqs[0]
-  // const data = {
-  //      "sort_key": req.sort_key
-  //    }
-  // //   console.log(data)
-  // axios.patch(req.url,data)
-  // .then((resp) => {
-  //   console.log(resp)
-  // },(err) => {
-  //   console.log(err)
-  // })
-
-  
-
-  const patchReqs = reqs.map(req => axios.patch(req.url,{"sort_key": req.sort_key}))
-  console.log(patchReqs)
-
-  Promise.all([patchReqs[0],patchReqs[1]])
-  .then( (resp) => {
-    console.log("success: ",resp)
-    updateRoadmap()
-  })
-  .catch(err => {
-    console.log("error: ",err)
-  })
-
-  // axios.all(reqs.map((req) => {
-  //   const data = {
-  //     "sort_key": req.sort_key
-  //   }
-  //   console.log(data)
-  //   axios.patch(req.url,data)
-  // }))
-  // .then(axios.spread((...resp) => {
-  //   console.log("success: ",resp)
-  // }, (err)  => { 
-  //   console.log("error :",err)
-  // }))
-
-}
-//   let linksArr = ['https://jsonplaceholder.typicode.com/posts', 'https://jsonplaceholder.typicode.com/comments'];
-
-// axios.all(linksArr.map(l => axios.get(l)))
-//   .then(axios.spread(function (...res) {
-//     // all requests are now complete
-//     console.log(res);
-//   }));
-
-  const orderedLanesX = (lanes,laneOrder) => {
-    const ordered = []
-    laneOrder.map(laneId => {
-      if (laneId !== -1) {
-        const id = `lane-${laneId}`
-        ordered.push(lanes[id])
-      }
-      else {
-        ordered.push(undefined)
-      }
-    })
-    return ordered
+    return { title, color }
   }
 
+  const initLaneData = () => {
+    const colors =[ "#00d084","#0693e3","purple","tomato"] //@todo make this configurable
+
+    const title = `Lane ${nextLaneId}`
+    const color = colors[nextLaneId % colors.length]
+    setNextLaneId(nextLaneId + 1)
+    // fire off db request:
+
+    return { title, color }
+  }
+
+  // ..........................................................................
   // use the drag start callback to determine if we need to show the drop here target
   // (shown if there are zero lanes, and the onboarding state is 'add_lane')
+
   const onDragStart = (result) => {
-    console.log("Dragging: ",result)
+    //console.log("Dragging: ",result)
 
     const {source,destination } = result;
     
@@ -353,64 +327,176 @@ const updateLaneSortOrderNB = (sortedLanes) => {
     // @todo: problem: the 
     if (type === 'lane' && source.droppableId === 'tool-area-lane') {
  
-      const newLane = createLane(destination.index);
-
-      if (persistentOrder) {
-
-      }
-      else {
-
-      }
-      return
-
-      // update the ordered lane list, but put a placeholder value for
-      // the new one (since we wont know its ID until we get it from the DB)
-      const newLaneOrder = Array.from(roadmap.orderedLanes);
-      newLaneOrder.splice(destination.index, 0, -1);
+      //const newLane = createLane(destination.index);
+      var newLane = initLaneData(); //@todo improve this
+      newLane = { ...newLane,
+        roadmap_id: "1",
+        collapsed:"false",
+        sort_key: destination.index
+      } 
    
-      const orderedLanes = orderedLanesX(roadmap.lanes, newLaneOrder)
-      updateLaneSortOrder(orderedLanes) //NB
+      axios.post('/api/v1/lanes',newLane)
+        .then(resp => {
+          // we can get the lane.id from the response...
+          const newLaneOrder = Array.from(roadmap.orderedLanes);
+          newLaneOrder.splice(destination.index, 0, -1); //we could just put the new lane id in here and not deal with this complexity
 
-      updateRoadmap()
+          // @todo this REALLY should be a function, since the same thing is done below -- figure out how to return a promise
+          const requests = []
+          newLaneOrder.forEach((lane,index) => {
+            if (lane !== -1) {
+              requests.push(axios.patch(`/api/v1/lanes/${lane}`,{"sort_key":index}))
+            }
+          })
 
+          axios.all(requests)
+            .then(axios.spread((...responses) => {
+              console.log("successfully updated lane order: ",responses)
+              updateRoadmap()
+            }))
+            .catch(resp => {
+              console.log("failed to update lane order: ",resp)
+            })
+        })
+        .catch(resp => {
+          console.log()
+        })
       return
     }
 
-    // ......
     // if this is a lane, this is a reorder event:
-    // currently just update the order locally - not persistent
 
     if (type === 'lane') {
 
-      // @todo move to own function?
-      //reorderLanes(?)
+      console.log("lane reorder")
+      
       var newOrderedLanes = Array.from(roadmap.orderedLanes);
       newOrderedLanes.splice(destination.index, 0, newOrderedLanes.splice(source.index,1)[0]);
+      console.log(newOrderedLanes)
 
-      if (persistentOrder) {
+      //if (persistentOrder) {
 
-        // persistent solution:
-        // update the 'sort_key' value for all lanes in the db
-        // reload the roadmapd from the db
-        const orderedLanes = orderedLanesX(roadmap.lanes, newOrderedLanes)
-        updateLaneSortOrderNB(orderedLanes)
+        const csrfToken = document.querySelector('[name=csrf-token]').textContent
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken
+        console.log(csrfToken)
 
-        updateRoadmap()
-      }
-      else {
+        const requests = newOrderedLanes.map((lane,index) => {
+          return axios.patch(`/api/v1/lanes/${lane}`,{"sort_key":index})
+        })
 
-        // non persistent - (no DB)
-        const newRoadmap = {
-          ...roadmap,
-          orderedLanes: newOrderedLanes
-        }
-        setRoadmap(newRoadmap)
-      }
+        console.log(requests)
+
+        axios.all(requests)
+          .then(axios.spread((...responses) => {
+            console.log("successfully updated lane order: <reorder>",responses)
+            updateRoadmap()
+          }))
+          .catch(resp => {
+            console.log("failed to update lane order: <reorder>",resp)
+          })     
+      // }
+      // else {
+
+      //   // non persistent - (no DB)
+      //   const newRoadmap = {
+      //     ...roadmap,
+      //     orderedLanes: newOrderedLanes
+      //   }
+      //   setRoadmap(newRoadmap)
+      // }
       return;
     }
 
-    if (type === task) {
+    if (type === 'task') {
+      console.log("task >>>> ",result)
 
+      // check to see if this is a new task:
+      if (source.droppableId === 'tool-area-task') {
+        //const newTask = createTask()
+
+        // find the row: check to see if it is the placeholder row:
+        if (destination.droppableId.startsWith("row-placeholder-")) {
+
+          const parts = destination.droppableId.split("-")
+          const laneId = parts.pop()
+          //const lane = roadmap.lanes[`lane-${laneId}`]
+          //console.log("new task dropped on placeholder row - lane:",lane)
+
+          // what needs to happen:
+          // create a new row(r) in lane x -
+          // create a new task on row r
+          // reload the roadmap - kind of inefficient, but works for now
+
+          axios.post('/api/v1/rows',{"lane_id":laneId})
+            .then(resp => {
+              //console.log("created new row:", resp);
+              const row_id = resp.data.data.id
+
+              const { title, color } = initTaskData()
+              axios.post('/api/v1/tasks',{"title":title, "color":color, "row_id":row_id})
+                .then(resp => {
+                  //console.log("created new task: ")
+                  updateRoadmap()
+                })
+                .catch(resp => { 
+                  console.log(resp)
+                })
+            })
+            .catch(resp => {
+              console.log(resp)
+            })
+        }
+        else {
+          // create the new task in row r
+          const row = roadmap.rows[destination.droppableId]
+ 
+          const { title, color } = initTaskData()
+          axios.post('/api/v1/tasks',{"title":title, "color":color, "row_id":row.id, "sort_key":destination.index})
+            .then(resp => {
+
+              // update the sort_keys of the other tasks:
+              // make a copy of the array of tasks, insert a placeholder in the spot where the new one was added
+              // cycle thru the tasks, create a patch request for each using the index as the sort_key
+              // wait for all requests to complete.
+              const ttasks = Array.from(row.tasks.data) //@todo fix this
+              ttasks.splice(destination.index, 0, null)
+
+              const requests = []
+              ttasks.forEach((task, index) => {
+                if ( index !== destination.index ) {
+                  requests.push( axios.patch(`/api/v1/tasks/${task.id}`,{"sort_key":index}))
+                }
+              })
+              axios.all([requests]).then(axios.spread((...responses) => {
+                console.log(responses)
+                updateRoadmap()
+              })).catch(errors => {
+                // react on errors.
+                console.log(errors)
+              })
+            })
+            .catch(resp => { 
+              console.log("failed to create new task: ",resp)
+            })
+        }
+      }
+      else {
+        if( source.droppableId === destination.droppableId ) {
+          const row = roadmap.rows[destination.droppableId]
+
+          console.log("task drag: row:",source.droppableId)
+          //this is a same row-reorder
+          //const row = roadmap.rows[`row-`]
+        }
+        else {
+          // this is from one row to another:
+          console.log("task drag: from:",source.droppableId," to:", destination.droppableId)
+
+          //check if the destination is a placeholder
+          const srcRow = roadmap.rows[source.droppableId]
+          const dsrRow = roadmap.rows[destination.droppableId]
+        }
+      }
     }
 
 
@@ -420,6 +506,9 @@ const updateLaneSortOrderNB = (sortedLanes) => {
     //setShowOnboarding(true)
     //console.log("show onboarding")
   }
+
+  //const csrfToken = document.querySelector('[name=csrf-token]').content
+  //axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken
 
   const handleUpdateLane = (data) => {
 
@@ -449,21 +538,23 @@ const updateLaneSortOrderNB = (sortedLanes) => {
   }
 
   const handleDeleteLane = (laneId) => {
+    setShowModal(true)
+
     console.log(`delete lane: ${laneId}`)
 
-const csrfToken = document.querySelector('[name=csrf-token]').content
-axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken
-console.log(csrfToken)
 
-    axios.delete(`/api/v1/lanes/${laneId}`)
-    .then(resp => {
-      console.log("delete successful: ",resp)
-      updateRoadmap()
-    })
-    .catch(resp => { 
-      console.log(resp)
-    })
+
+    // axios.delete(`/api/v1/lanes/${laneId}`)
+    // .then(resp => {
+    //   console.log("delete successful: ",resp)
+    //   updateRoadmap()
+    // })
+    // .catch(resp => { 
+    //   console.log(resp)
+    // })
   }
+
+  // ..........................................................................
 
   const renderOnboarding = () => {
   
@@ -490,16 +581,11 @@ console.log(csrfToken)
     )
   }
 
-  const renderDropHereTarget = () => {
-    if(!showDropHere) {
-      return null;
-    }
-
-    return (
-      <div className="drop-here-target">
-        <h3>Drop Here</h3>
-      </div>
-    )
+  // @todo 
+  const renderModalDialog = () => {
+    return <Modal show={showModal} title={"Confirm Delete"} onClose={() => setShowModal(false)}>
+      Do you really want to delete the lane?
+    </Modal>
   }
 
   const orderedLanes = () => {
@@ -535,7 +621,8 @@ console.log(csrfToken)
           </div>
         </div>
       </DragDropContext>
-      {renderOnboarding()}            
+      {renderOnboarding()}    
+      {renderModalDialog()}        
     </Fragment>
   )
 }

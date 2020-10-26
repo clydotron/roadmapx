@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
 
@@ -15,7 +15,31 @@ const Container = styled.div`
 
 const Task = (props) => {
 
-  return (
+  useEffect (() => {
+
+  },[props])
+
+  return ( 
+    <Draggable draggableId={`task-${props.task.id}`} index={props.index} type="task">
+      {(provided,snapshot) => (
+        <Container
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          ref={provided.innerRef}
+          isDragging={snapshot.isDragging}
+          bkColor={props.task.color}
+        >
+          {props.task.title}
+        </Container>
+      )}
+    </Draggable>
+  )
+}
+
+export default Task
+
+//<Container key={props.key} bkColor={props.task.color}>{props.task.title}</Container>
+/*
     <Draggable draggableId={props.task.id} index={props.index} type="task">
       {(provided,snapshot) => (
         <Container
@@ -29,5 +53,4 @@ const Task = (props) => {
         </Container>
       )}
     </Draggable>
-  )
-}
+    */

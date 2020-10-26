@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
-import TaskRow from './TaskRow/TaskRow';
+import TaskRow from './TaskRow/TaskRowC';
 import EditableText from './../../../EditableText/EditableText'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
@@ -60,22 +60,22 @@ const LaneWidgetRight = styled.div`
   cursor: pointer; 
 `
 
-const Title = styled.h3`
-  padding-top: 8px;
-  padding-left: 8px;
-  border: 0px;
-  margin: 0px 0px 2px 0px;
-  text-align: left;
-  flex-grow:1;
-`;
+// const Title = styled.h3`
+//   padding-top: 8px;
+//   padding-left: 8px;
+//   border: 0px;
+//   margin: 0px 0px 2px 0px;
+//   text-align: left;
+//   flex-grow:1;
+// `;
 
-//background-color: ${props => props.bkcolor}
+// //background-color: ${props => props.bkcolor}
 
-const Settings = styled.div`
-  background-color:  blue;
-  width: 24px;
-  height: 24px;
-`
+// const Settings = styled.div`
+//   background-color:  blue;
+//   width: 24px;
+//   height: 24px;
+// `
 const SettingsCover = styled.div`
   position: absolute;
   zIndex: 2;
@@ -92,7 +92,7 @@ const SettingsPopover = styled.div`
 const Lane = (props) => {
   
   const [mouseOver,setMouseOver] = useState(false)
-  const [taskRows,setTaskRows] = useState([])
+  //const [taskRows,setTaskRows] = useState([])
   const [collapsed,setCollapsed] = useState(false)
   const [showSettings,setShowSettings] = useState(false)
   const [showConfirmDelete,setShowConfirmDelete] = useState(false)
@@ -107,7 +107,7 @@ const Lane = (props) => {
     //determine how many taskRows we have...
     //console.log(props)
     //console.log("TaskRows:",props.data.rows)
-    setTaskRows(props.data.rows)
+    //setTaskRows(props.data.rows)
     // @todo make sure this is the right format
   }
 
@@ -178,15 +178,25 @@ const Lane = (props) => {
       return null
     }
     return (
-      <SettingsPopover>
-        <SettingsCover onClick={() => setShowSettings(false)}>
+      <div className="colorpicker-popover">
+        <div className="colorpicker-cover" onClick={() => setShowSettings(false)}>
           <TwitterPicker color={props.data.color} onChange={(color) => handleNewColor(color.hex) }/>
-        </SettingsCover>
-      </SettingsPopover>
+        </div>
+      </div>
     )
   }
+//   <div>
+//   <div style={ styles.swatch } onClick={ this.handleClick }>
+//     <div style={ styles.color } />
+//   </div>
+//   { this.state.displayColorPicker ? <div style={ styles.popover }>
+//     <div style={ styles.cover } onClick={ this.handleClose }/>
+//     <SketchPicker color={ this.state.color } onChange={ this.handleChange } />
+//   </div> : null }
 
-  const taskRowsX = props.data.rows.map((row,index) => {
+// </div>
+  const rows = props.data.rows.map((row,index) => {
+    //console.log(row)
     return <TaskRow key={row.id} id={row.id} data={row} index={index} />
   })
 
@@ -221,7 +231,7 @@ const Lane = (props) => {
         {
           !collapsed &&
           <Container>
-            {taskRowsX}
+            {rows}
           </Container>
         }
         </LaneContainer>
@@ -257,3 +267,14 @@ export default Lane;
 //   </div>
 // )
 // }
+
+{/* <div>
+<div style={ styles.swatch } onClick={ this.handleClick }>
+  <div style={ styles.color } />
+</div>
+{ this.state.displayColorPicker ? <div style={ styles.popover }>
+  <div style={ styles.cover } onClick={ this.handleClose }/>
+  <SketchPicker color={ this.state.color } onChange={ this.handleChange } />
+</div> : null }
+
+</div> */}

@@ -25,6 +25,7 @@ module Api
 
       def update
         lane = Lane.find(params[:id])
+        
         if lane.update(lane_params)
           render json: LaneSerializer.new(lane).serialized_json
         else
